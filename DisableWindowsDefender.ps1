@@ -42,10 +42,10 @@ Function Remove-ACL {
 
                     # Remove ACL
                     $acl = Get-Acl $_
-                    try{
+                    try {
                         $acl.Access | % { $acl.RemoveAccessRule($_) } | Out-Null
                     }
-                    catch{
+                    catch {
                         Write-Output "Access modified to Administator account."
                     }
                     
@@ -77,6 +77,9 @@ function Disable-Windows-Defender {
         Set-ItemProperty -Path "HKLM:\SYSTEM\ControlSet001\Services\WdNisSvc" -Name "Start" -Value 4 -force | out-null
         Set-ItemProperty -Path "HKLM:\SYSTEM\ControlSet001\Services\SecurityHealthService" -Name "Start" -Value 4 -force | out-null
         Set-ItemProperty -Path "HKLM:\SYSTEM\ControlSet001\Services\mpssvc" -Name "Start" -Value 4 -force | out-null
+        Set-ItemProperty -Path "HKLM:\SYSTEM\ControlSet001\Services\UsoSvc" -Name "Start" -Value 4 -force | out-null
+        Set-ItemProperty -Path "HKLM:\SYSTEM\ControlSet001\Services\wuauserv" -Name "Start" -Value 4 -force | out-null
+        Set-ItemProperty -Path "HKLM:\SYSTEM\ControlSet001\Services\WaaSMedicSvc" -Name "Start" -Value 4 -force | out-null
         
         #Set-ItemProperty -Path "HKLM:\SYSTEM\ControlSet\Services\WinDefend" -Name "Start" -Value 4 -force | out-null
         #Set-ItemProperty -Path "HKLM:\SYSTEM\ControlSet\ServicesSense" -Name "Start" -Value 4 -force | out-null
@@ -95,7 +98,8 @@ function Disable-Windows-Defender {
 function Reboot-Safe-Mode {
     $owner = Get-Acl "C:\ProgramData\Microsoft\Windows Defender\Platform"
     $bootState = (gwmi win32_computersystem -Property BootupState).BootupState
-    if ((gwmi win32_computersystem -Property BootupState).BootupState -eq 'Normal Boot') {      #$owner.Owner -eq "NT AUTHORITY\SYSTEM" -and ----> May add this back later
+    if ((gwmi win32_computersystem -Property BootupState).BootupState -eq 'Normal Boot') {
+        #$owner.Owner -eq "NT AUTHORITY\SYSTEM" -and ----> May add this back later
         cmd.exe /c "bcdedit /set {default} safeboot minimal "
         Write-Output "`r`nSafe Mode has been set.`n`nPress enter to reboot. Run this script again once the computer has been reset.`n"
         Pause
