@@ -94,6 +94,42 @@ function Disable-Windows-Defender {
         Write-Output "error"
     }
 }
+function Disable-WindowsTask {
+    param (
+        [string]$taskName
+    )
+    
+    try {
+        Disable-ScheduledTask -TaskName $taskName -ErrorAction Stop
+        Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction Stop
+
+        Write-Output "`r`nWindows Task '$taskName' disabled and deleted.`n"
+    }
+    catch {
+        Write-Output "`r`nFailed to disable or delete Windows Task '$taskName': $_.`n"
+    }
+}
+
+function Disable-All-Tasks {
+    Disable-WindowsTask -taskName "Reboot_AC"
+    Disable-WindowsTask -taskName "Reboot_Battery"
+    Disable-WindowsTask -taskName "Report policies"
+    Disable-WindowsTask -taskName "Schedule Maintenance Work"
+    Disable-WindowsTask -taskName "Schedule Scan"
+    Disable-WindowsTask -taskName "Schedule Scan Static Task"
+    Disable-WindowsTask -taskName "Schedule Wake To Work"
+    Disable-WindowsTask -taskName "Schedule Work"
+    Disable-WindowsTask -taskName "UpdateModelTask"
+    Disable-WindowsTask -taskName "USO_UxBroker"
+    Disable-WindowsTask -taskName "RunUpdateNotificationMgr"
+    Disable-WindowsTask -taskName "Refresh Group Policy Cache"
+    Disable-WindowsTask -taskName "Scheduled Start"
+    Disable-WindowsTask -taskName "Windows Defender Cache Maintenance"
+    Disable-WindowsTask -taskName "Windows Defender Cleanup"
+    Disable-WindowsTask -taskName "Windows Defender Scheduled Scan"
+    Disable-WindowsTask -taskName "Windows Defender Verification"
+}
+
 
 function Reboot-Safe-Mode {
     $owner = Get-Acl "C:\ProgramData\Microsoft\Windows Defender\Platform"
@@ -112,6 +148,8 @@ function Reboot-Safe-Mode {
         Give-Folder-Access
         Remove-ACL "C:\ProgramData\Microsoft\Windows Defender\Platform" -Recurse -Verbose
         Disable-Windows-Defender
+        Disable-All-Tasks
+
         Write-Output "`r`nNormal Boot has been set.`nPress enter to reboot. Run this script again once the computer has been reset.`n"
         Pause
         cmd.exe /c "shutdown -r -t 0"
