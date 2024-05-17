@@ -1,10 +1,15 @@
 ﻿function Give-Folder-Access {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$ItemListPath
+    )
+    
     $currentPCUser = [Environment]::UserName.ToUpper()
 
     $Account = New-Object -TypeName System.Security.Principal.NTAccount -ArgumentList "$currnetPCUser`\Administrators";
 
     # Get a list of folders and files
-    $ItemList = Get-ChildItem -Path "C:\ProgramData\Microsoft\Windows Defender\Platform" -Recurse;
+    $ItemList = Get-ChildItem -Path $ItemListPath -Recurse;
     
     # Iterate over files/folders
     foreach ($Item in $ItemList) {
@@ -128,6 +133,38 @@ function Disable-All-Tasks {
     Disable-WindowsTask -taskName "Windows Defender Cleanup"
     Disable-WindowsTask -taskName "Windows Defender Scheduled Scan"
     Disable-WindowsTask -taskName "Windows Defender Verification"
+    Disable-WindowsTask -taskName "XblGameSaveTask"
+    Disable-WindowsTask -taskName "Consolidator"
+    Disable-WindowsTask -taskName "UsbCeip"
+
+    Remove-TaskFolder -FolderPath "C:\Windows\System32\Tasks\Microsoft\Windows\WindowsUpdate"
+    Remove-TaskFolder -FolderPath "C:\Windows\System32\Tasks\Microsoft\XblGameSave"
+    Remove-TaskFolder -FolderPath "C:\Windows\System32\Tasks\Microsoft\Windows\UpdateOrchestrator"
+    Remove-TaskFolder -FolderPath "C:\Windows\System32\Tasks\Microsoft\Windows\UNP"
+    Remove-TaskFolder -FolderPath "C:\Windows\System32\Tasks\Microsoft\Windows\Windows Defender"
+    Remove-TaskFolder -FolderPath "C:\Windows\System32\Tasks\Microsoft\Windows\Customer Experience Improvement Program"
+}
+
+function Remove-TaskFolder {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$FolderPath
+    )
+    
+    # Ensure the folder exists
+    if (-Not (Test-Path -Path $FolderPath -PathType Container)) {
+        Write-Error "The specified folder does not exist: $FolderPath"
+        return
+    }
+
+    # Attempt to remove the folder and all its contents
+    try {
+        Remove-Item -Path $FolderPath -Force -Recurse
+        Write-Output "The folder '$FolderPath' and all its contents have been removed."
+    }
+    catch {
+        Write-Error "Failed to remove the folder: $($_.Exception.Message)"
+    }
 }
 
 
@@ -145,8 +182,10 @@ function Reboot-Safe-Mode {
         cmd.exe /c "bcdedit /deletevalue {default} safeboot "
         Write-Output "Normal Boot has been restored.`n`nPress enter to reboot. Run this script again once the computer has been reset."
         TAKEOWN /F "C:\ProgramData\Microsoft\Windows Defender\Platform" /A /R /D Y
-        Give-Folder-Access
+        Give-Folder-Access -ItemListPath "C:\ProgramData\Microsoft\Windows Defender\Platform"
+        Give-Folder-Access -ItemListPath "C:\Windows\System32\Tasks\Microsoft\Windows\UpdateOrchestrator"
         Remove-ACL "C:\ProgramData\Microsoft\Windows Defender\Platform" -Recurse -Verbose
+        Remove-ACL "C:\Windows\System32\Tasks\Microsoft\Windows\UpdateOrchestrator" -Recurse -Verbose
         Disable-Windows-Defender
         Disable-All-Tasks
 
