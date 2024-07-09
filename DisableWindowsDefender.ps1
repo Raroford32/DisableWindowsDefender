@@ -198,5 +198,3 @@ function Reboot-Safe-Mode {
         Pause
     }
 }
-
-Reboot-Safe-Mode
