@@ -1,0 +1,39 @@
+# Disable Windows Defender services
+Write-Output "Disabling Windows Defender services..."
+Set-Service -Name "WinDefend" -StartupType Disabled -ErrorAction SilentlyContinue
+Stop-Service -Name "WinDefend" -ErrorAction SilentlyContinue
+
+# Disable Windows Defender features via Group Policy
+Write-Output "Disabling Windows Defender features via Group Policy..."
+Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue
+Set-MpPreference -DisableScanningNetworkFiles $true -ErrorAction SilentlyContinue
+Set-MpPreference -DisableIOAVProtection $true -ErrorAction SilentlyContinue
+Set-MpPreference -DisableRemovableDriveScanning $true -ErrorAction SilentlyContinue
+Set-MpPreference -DisableArchiveScanning $true -ErrorAction SilentlyContinue
+
+# Disable Windows Defender using registry
+Write-Output "Disabling Windows Defender using registry..."
+New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Force -ErrorAction SilentlyContinue
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -ErrorAction SilentlyContinue
+
+# Create a scheduled task to ensure Defender stays disabled
+$script = {
+    Set-Service -Name "WinDefend" -StartupType Disabled -ErrorAction SilentlyContinue
+    Stop-Service -Name "WinDefend" -ErrorAction SilentlyContinue
+    Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -ErrorAction SilentlyContinue
+}
+
+$taskName = "EnsureDefenderDisabled"
+$taskDescription = "Ensures Windows Defender remains disabled"
+$taskAction = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-NoProfile -WindowStyle Hidden -Command & { $script }"
+$taskTrigger = New-ScheduledTaskTrigger -AtStartup
+$taskPrincipal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+
+Register-ScheduledTask -TaskName $taskName -Description $taskDescription -Action $taskAction -Trigger $taskTrigger -Principal $taskPrincipal -Force
+
+# Uninstall Windows Defender features
+Write-Output "Uninstalling Windows Defender features..."
+Uninstall-WindowsFeature -Name Windows-Defender-Features -Remove -ErrorAction SilentlyContinue
+
+Write-Output "Windows Defender has been disabled/uninstalled. A restart may be required for all changes to take effect."
