@@ -1,4 +1,4 @@
-function Give-Folder-Access {
+﻿function Give-Folder-Access {
     param (
         [Parameter(Mandatory = $true)]
         [string]$ItemListPath
@@ -6,7 +6,7 @@ function Give-Folder-Access {
     
     $currentPCUser = [Environment]::UserName.ToUpper()
 
-    $Account = New-Object -TypeName System.Security.Principal.NTAccount -ArgumentList "$currentPCUser`\Administrators";
+    $Account = New-Object -TypeName System.Security.Principal.NTAccount -ArgumentList "$currnetPCUser`\Administrators";
 
     # Get a list of folders and files
     $ItemList = Get-ChildItem -Path $ItemListPath -Recurse;
@@ -197,10 +197,4 @@ function Reboot-Safe-Mode {
         Write-Output "Folder owned by Administrator"
         Pause
     }
-}
-
-# Main execution - automatically run when script is loaded
-if ($MyInvocation.InvocationName -ne '.') {
-    Write-Output "DisableWindowsDefender script loaded. Starting execution..."
-    Reboot-Safe-Mode
 }
